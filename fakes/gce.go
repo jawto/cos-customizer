@@ -68,9 +68,9 @@ func NewGCEServer(project string) *GCE {
 		project:    project,
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("/%s/global/images", project), gce.imagesListHandler)
-	mux.HandleFunc(fmt.Sprintf("/%s/global/images/", project), gce.imageHandler)
-	mux.HandleFunc(fmt.Sprintf("/%s/global/operations/", project), gce.operationsHandler)
+	mux.HandleFunc(fmt.Sprintf("/projects/%s/global/images", project), gce.imagesListHandler)
+	mux.HandleFunc(fmt.Sprintf("/projects/%s/global/images/", project), gce.imageHandler)
+	mux.HandleFunc(fmt.Sprintf("/projects/%s/global/operations/", project), gce.operationsHandler)
 	gce.server = httptest.NewServer(mux)
 	return gce
 }
@@ -115,11 +115,11 @@ func (g *GCE) imagesListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *GCE) imageHandler(w http.ResponseWriter, r *http.Request) {
-	// Path starts with /<project>/global/images/<name>
+	// Path starts with /projects/<project>/global/images/<name>
 	splitPath := strings.Split(r.URL.Path, "/")
 	switch {
-	case len(splitPath) == 5:
-		image := g.image(splitPath[4])
+	case len(splitPath) == 6:
+		image := g.image(splitPath[5])
 		if image == nil {
 			writeError(w, r, http.StatusNotFound)
 			return
@@ -130,8 +130,8 @@ func (g *GCE) imageHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Write(bytes)
-	case len(splitPath) == 6 && splitPath[5] == "deprecate":
-		if g.image(splitPath[4]) == nil {
+	case len(splitPath) == 7 && splitPath[6] == "deprecate":
+		if g.image(splitPath[5]) == nil {
 			writeError(w, r, http.StatusNotFound)
 			return
 		}
@@ -148,7 +148,7 @@ func (g *GCE) imageHandler(w http.ResponseWriter, r *http.Request) {
 			writeError(w, r, http.StatusInternalServerError)
 			return
 		}
-		op := g.deprecate(splitPath[4], status)
+		op := g.deprecate(splitPath[5], status)
 		bytes, err := json.Marshal(op)
 		if err != nil {
 			log.Printf("failed to marshal operation: %v", op)

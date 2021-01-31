@@ -103,7 +103,7 @@ func TestIterate(t *testing.T) {
 	for _, input := range testData {
 		t.Run(input.testName, func(t *testing.T) {
 			gcs.Objects = input.objects
-			q := &storage.Query{"", input.prefix, false}
+			q := &storage.Query{Delimiter: "", Prefix: input.prefix, Versions: false}
 			it := gcs.Client.Bucket(input.bucket).Objects(context.Background(), q)
 			var actualObjects []string
 			for {
